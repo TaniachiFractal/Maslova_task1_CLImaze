@@ -19,8 +19,8 @@ namespace Maslova_task1_CLImaze
 
             maze = GenerateBaseLayout();
             maze = GenerateRooms(maze);
-            maze = SaltTheMaze(maze, Cnst.Wall, 0.12);
-            maze = SaltTheMaze(maze, Cnst.Air, 0.12);
+            maze = SaltTheMaze(maze, Cnst.Wall, 0.125);
+            maze = SaltTheMaze(maze, Cnst.Air, 0.125);
             for (var i = 0; i < 2; i++)
             {
                 maze = DigPath(maze, Cnst.Air);
@@ -61,7 +61,7 @@ namespace Maslova_task1_CLImaze
         {
             var output = new List<StringBuilder>();
 
-            var topWall = new StringBuilder("▓▓   ");
+            var topWall = new StringBuilder($"{Cnst.Wall}{Cnst.Wall}   ");
             for (var i = 5; i < mazeWidth; i++)
             {
                 topWall.Append(Cnst.Wall);
@@ -94,7 +94,7 @@ namespace Maslova_task1_CLImaze
             {
                 bottomWall.Append(Cnst.Wall);
             }
-            bottomWall.Append("   ▓▓");
+            bottomWall.Append($"   {Cnst.Wall}{Cnst.Wall}");
 
             output.Add(bottomWall);
             return output;
@@ -161,14 +161,6 @@ namespace Maslova_task1_CLImaze
 
             while (currCol < mazeWidth)
             {
-                if (currRow >= mazeHeight - 3)
-                {
-                    for (var col = currCol; col < mazeWidth - 2; col++)
-                    {
-                        newListStr[currRow][col] = path;
-                    }
-                    break;
-                }
                 if (currCol >= mazeWidth - 2)
                 {
                     for (var row = currRow; row < mazeHeight - 1; row++)
@@ -184,7 +176,14 @@ namespace Maslova_task1_CLImaze
                 }
 
                 if (currRow <= 1)
-                { currDirection = Cnst.Down; }
+                {
+                    currDirection = Cnst.Down;
+                }
+                if (currRow >= mazeHeight - 3)
+                {
+                    currDirection = Cnst.Up;
+                }
+
 
                 newListStr[currRow][currCol] = path;
 

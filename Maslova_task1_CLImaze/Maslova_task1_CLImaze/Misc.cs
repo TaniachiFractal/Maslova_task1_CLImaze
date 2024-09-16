@@ -38,5 +38,30 @@ namespace Maslova_task1_CLImaze
             previousRandom = newRandom;
             return newRandom;
         }
+
+        /// <summary>
+        /// Returns the amount of rows or cols to add according to the direction
+        /// </summary>
+        /// <remarks>Возвращает количество строк или столбцов для добавления в соответствии с направлением</remarks>
+        public static (int row, int col) DirectionToRowCol(int direction)
+        {
+            return direction switch
+            {
+                Cnst.Up => (-1, 0),
+                Cnst.Down => (1, 0),
+                Cnst.Left => (0, -1),
+                Cnst.Right => (0, 1),
+                _ => (0, 0),
+            };
+        }
+
+        /// <summary>
+        /// Distance between 2 points
+        /// </summary>
+        /// <returns>Расстояние между 2 точками</returns>
+        public static int Distance(int row1, int col1, int row2, int col2)
+        {
+            return (int)(Math.Sqrt((row2 - row1) * (row2 - row1) + (col2 - col1) * (col2 - col1)));
+        }
     }
 }
