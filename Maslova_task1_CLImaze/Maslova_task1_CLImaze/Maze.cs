@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Reflection.Metadata;
+using System.Text;
 
 namespace Maslova_task1_CLImaze
 {
@@ -9,44 +10,61 @@ namespace Maslova_task1_CLImaze
     internal class Maze
     {
         /// <summary>
+        /// Constructor: Generate a maze
+        /// </summary>
+        public Maze(int mazeWidt, int mazeHeigh)
+        {
+            mazeWidth = mazeWidt;
+            mazeHeight = mazeHeigh;
+
+            maze = GenerateBaseLayout();
+            maze = GenerateRooms(maze);
+            maze = SaltTheMaze(maze, Cnst.Wall, 0.12);
+            maze = SaltTheMaze(maze, Cnst.Air, 0.12);
+            for (var i = 0; i < 2; i++)
+            {
+                maze = DigPath(maze, Cnst.Air);
+            }
+            maze = DigPath(maze, Cnst.SolutionPath);
+        }
+
+
+        /// <summary>
         /// Step of the main walls
         /// </summary>
         /// <remarks>Шаг главных стен</remarks>
         private const int WallStep = 4;
 
         /// <summary>
-        /// The height/width of the maze
+        /// The width of the maze
         /// </summary>
-        /// <remarks>Длина/ширина лабиринта</remarks>
-        private static int mazeWidth, mazeHeight;
-
-        private 
+        /// <remarks>Ширина лабиринта</remarks>
+        private readonly int mazeWidth;
+        /// <summary>
+        /// The height of the maze
+        /// </summary>
+        /// <remarks>Высота лабиринта</remarks>
+        private readonly int mazeHeight;
 
         /// <summary>
-        /// Return a newly generated maze
+        /// The maze itself
         /// </summary>
-        public static Maze(int mazeWidt, int mazeHeigh)
-        {
-            mazeWidth = mazeWidt;
-            mazeHeight = mazeHeigh;
+        /// <remarks>Сам лабиринт</remarks>
+        public readonly List<StringBuilder> maze;
 
-            var output = Maze.GenerateBaseLayout();
-            output = Maze.GenerateRooms(output);
-            return output;
-        }
-
+        #region generation
         /// <summary>
         /// Generate the base maze layout that will be modified further
         /// </summary>
         /// <remarks>Создать базовый макет лабиринта, который будет изменён в дальнейшем</remarks>
-        private static List<StringBuilder> GenerateBaseLayout()
+        private List<StringBuilder> GenerateBaseLayout()
         {
             var output = new List<StringBuilder>();
 
             var topWall = new StringBuilder("▓▓   ");
             for (var i = 5; i < mazeWidth; i++)
             {
-                topWall.Append(Constants.Wall);
+                topWall.Append(Cnst.Wall);
             }
             output.Add(topWall);
 
@@ -54,19 +72,19 @@ namespace Maslova_task1_CLImaze
             for (var row = 1; row < mazeHeight - 2; row++)
             {
                 var newString = new StringBuilder();
-                newString.Append(Constants.Wall);
+                newString.Append(Cnst.Wall);
                 for (var col = 0; col < mazeWidth - 3; col++)
                 {
                     if (col % WallStep == 0)
                     {
-                        newString.Append(Constants.Wall);
+                        newString.Append(Cnst.Wall);
                     }
                     else
                     {
-                        newString.Append(Constants.Air);
+                        newString.Append(Cnst.Air);
                     }
                 }
-                newString.Append(Constants.Wall, 2);
+                newString.Append(Cnst.Wall, 2);
                 output.Add(newString);
             }
 
@@ -74,7 +92,7 @@ namespace Maslova_task1_CLImaze
             var bottomWall = new StringBuilder();
             for (var i = 0; i < mazeWidth - 5; i++)
             {
-                bottomWall.Append(Constants.Wall);
+                bottomWall.Append(Cnst.Wall);
             }
             bottomWall.Append("   ▓▓");
 
@@ -86,19 +104,109 @@ namespace Maslova_task1_CLImaze
         /// Generate semi-random rooms in the base layout
         /// </summary>
         /// <remarks>Генерация полуслучайных комнат в базовой разметке</remarks>
-        private static List<StringBuilder> GenerateRooms(List<StringBuilder> listStr)
+        private List<StringBuilder> GenerateRooms(List<StringBuilder> listStr)
         {
-            var rnd = new Random();
             var newListStr = listStr;
 
-            var newWallCount = mazeWidth / 3 * 2;
-
-            for (var i = 0; i < newWallCount; i++)
+            for (var colStart = 2; colStart < mazeWidth; colStart += WallStep)
             {
-
+                for (var i = 0; i < 5; i++)
+                {
+                    var roomHeight = (int)(Misc.NiceRandomDouble(1) * (mazeHeight - 2));
+                    for (var col = colStart; col < mazeWidth && col < WallStep + colStart; col++)
+                    {
+                        maze[roomHeight][col] = Cnst.Wall;
+                    }
+                }
             }
 
             return newListStr;
         }
+
+        /// <summary>
+        /// Put chars randomly across the maze
+        /// </summary>
+        /// <remarks>Разместить символы в случайном порядке по лабиринту</remarks>
+        private List<StringBuilder> SaltTheMaze(List<StringBuilder> listStr, char symbol, double chance)
+        {
+            var newListStr = listStr;
+            for (var row = 1; row < mazeHeight - 2; row++)
+            {
+                for (var col = 0; col < mazeWidth - 3; col++)
+                {
+                    if (Misc.NiceRandomDouble(1) < chance)
+                    {
+                        newListStr[row][col] = symbol;
+                    }
+                }
+            }
+            return newListStr;
+        }
+
+        /// <summary>
+        /// Dig a solution path in the base layout
+        /// </summary>
+        /// <remarks>Выкопать путь решения в базовой разметке</remarks>
+        private List<StringBuilder> DigPath(List<StringBuilder> listStr, char path)
+        {
+            var vertChangeChance = 0.5;
+            var horizChangeChance = 0.3;
+
+            var newListStr = listStr;
+            var directionChangeChance = vertChangeChance;
+
+            var currRow = 0;
+            var currCol = 3;
+            var currDirection = Cnst.Down;
+
+            while (currCol < mazeWidth)
+            {
+                if (currRow >= mazeHeight - 3)
+                {
+                    for (var col = currCol; col < mazeWidth - 2; col++)
+                    {
+                        newListStr[currRow][col] = path;
+                    }
+                    break;
+                }
+                if (currCol >= mazeWidth - 2)
+                {
+                    for (var row = currRow; row < mazeHeight - 1; row++)
+                    {
+                        newListStr[row][currCol] = path;
+                    }
+                    break;
+                }
+
+                if (Misc.NiceRandomDouble(1) < directionChangeChance)
+                {
+                    currDirection = new Random().Next(4);
+                }
+
+                if (currRow <= 1)
+                { currDirection = Cnst.Down; }
+
+                newListStr[currRow][currCol] = path;
+
+                if (currDirection == Cnst.Down)
+                {
+                    currRow++;
+                    directionChangeChance = vertChangeChance;
+                }
+                else if (currDirection == Cnst.Left)
+                {
+                    currCol++;
+                    directionChangeChance = horizChangeChance;
+                }
+                else if (currDirection == Cnst.Up)
+                {
+                    currRow--;
+                    directionChangeChance = vertChangeChance;
+                }
+
+            }
+            return newListStr;
+        }
+        #endregion
     }
 }

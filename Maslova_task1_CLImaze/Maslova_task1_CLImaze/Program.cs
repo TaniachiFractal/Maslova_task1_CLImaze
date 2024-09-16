@@ -12,7 +12,9 @@
         /// <remarks>Точка входа в программу</remarks>
         private static void Main()
         {
-            TextOutput.ConsoleWriteListStringBuilder(Maze.GenerateMaze(79, 25));
+            Console.WriteLine();
+            Console.WriteLine();
+            TextOutput.ConsoleWriteListStringBuilder(new Maze(79, 20).maze);
             Console.ReadKey();
         }
     }

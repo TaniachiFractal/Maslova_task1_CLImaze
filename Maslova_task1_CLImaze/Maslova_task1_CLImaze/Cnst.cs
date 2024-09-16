@@ -4,7 +4,7 @@
     /// Class for various constants
     /// </summary>
     /// <remarks>Класс для различных констант</remarks>
-    internal class Constants
+    internal class Cnst
     {
         /// <summary>
         /// The char for walls
@@ -28,6 +28,12 @@
         /// The char for the player
         /// </summary>
         /// <remarks>Символ игрока</remarks>
-        public const char Player = 'й';
+        public const char Player = 'ꭥ';
+
+        /// <summary>
+        /// The directions of moving
+        /// </summary>
+        /// <remarks>Направления движения</remarks>
+        public const int Up = 0, Right = 1, Down = 2, Left = 3;
     }
 }
